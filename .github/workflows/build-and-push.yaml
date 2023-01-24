@@ -1,0 +1,38 @@
+name: build-and-push
+
+on:
+  push:
+    branches:
+      - dev
+      - workflow
+      - main
+    # tags:
+    #   - "*"
+
+jobs:
+  # Using: https://github.com/docker/build-push-action
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # This here is a workaroud to be able to use the truncated git hash.
+      - name: Set the Git Hash
+        run: echo "THE_GIT_HASH=${GITHUB_SHA::7}" >> $GITHUB_ENV
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          file: ./Dockerfile
+          push: true
+          tags:
+            ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:latest,
+            ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}
