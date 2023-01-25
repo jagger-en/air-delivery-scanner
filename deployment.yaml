@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: air-delivery-scanner
+  labels:
+    app: air-delivery-scanner
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: air-delivery-scanner
+  template:
+    metadata:
+      labels:
+        app: air-delivery-scanner
+    spec:
+      containers:
+        - name: air-delivery-scanner
+          image: registry.hub.docker.com/cool8787/airdelscn:f8febd4
+          ports:
+            - containerPort: 7070
+          resources:
+            limits:
+              cpu: 50m
+              memory: 50Mi
+            requests:
+              cpu: 30m
+              memory: 20Mi

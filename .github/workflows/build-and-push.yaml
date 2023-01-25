@@ -1,6 +1,7 @@
 name: build-and-push
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - dev
@@ -13,6 +14,8 @@ jobs:
   # Using: https://github.com/docker/build-push-action
   docker:
     runs-on: ubuntu-latest
+    env:
+      NAMESPACE: deployment
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -36,3 +39,20 @@ jobs:
           tags:
             ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:latest,
             ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}
+
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+      - name: Get kubeconfig file
+        run: |
+          doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_CLUSTER_NAME }}
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      - name: Apply deployment configuration file
+        run: |
+          kubectl apply -f deployment.yaml --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      - name: Check rollout status
+        run: |
+          kubectl rollout status deployment.apps/air-delivery-scanner --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
