@@ -17,45 +17,55 @@ jobs:
     env:
       NAMESPACE: deployment
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - name: some commands
+        run: |
+          echo "one"
+          echo "two"
+          echo "three"
+          ls
+      - name: helm version
+        run: |
+          helm version
 
-      # This here is a workaroud to be able to use the truncated git hash.
-      - name: Set the Git Hash
-        run: echo "THE_GIT_HASH=${GITHUB_SHA::7}" >> $GITHUB_ENV
+      # - name: Checkout code
+      #   uses: actions/checkout@v2
 
-      - name: Login to DockerHub
-        uses: docker/login-action@v2
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      # # This here is a workaroud to be able to use the truncated git hash.
+      # - name: Set the Git Hash
+      #   run: echo "THE_GIT_HASH=${GITHUB_SHA::7}" >> $GITHUB_ENV
 
-      - name: Build and push
-        uses: docker/build-push-action@v3
-        with:
-          context: ./
-          file: ./Dockerfile
-          push: true
-          tags:
-            ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:latest,
-            ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}
+      # - name: Login to DockerHub
+      #   uses: docker/login-action@v2
+      #   with:
+      #     username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #     password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Install doctl
-        uses: digitalocean/action-doctl@v2
-        with:
-          token: ${{ secrets.DO_TOKEN }}
-      - name: Get kubeconfig file
-        run: |
-          doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_CLUSTER_NAME }}
-      - name: Create namespace
-        run: |
-          kubectl create namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
-      - name: Set image
-        run: |
-          yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}"' deployment.yaml
-      - name: Apply deployment configuration file
-        run: |
-          kubectl apply -f deployment.yaml --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
-      - name: Check rollout status
-        run: |
-          kubectl rollout status deployment.apps/air-delivery-scanner --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      # - name: Build and push
+      #   uses: docker/build-push-action@v3
+      #   with:
+      #     context: ./
+      #     file: ./Dockerfile
+      #     push: true
+      #     tags:
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:latest,
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}
+
+      # - name: Install doctl
+      #   uses: digitalocean/action-doctl@v2
+      #   with:
+      #     token: ${{ secrets.DO_TOKEN }}
+      # - name: Get kubeconfig file
+      #   run: |
+      #     doctl kubernetes cluster kubeconfig save --expiry-seconds 600 ${{ secrets.DO_CLUSTER_NAME }}
+      # - name: Create namespace
+      #   run: |
+      #     kubectl create namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      # - name: Set image
+      #   run: |
+      #     yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}"' deployment.yaml
+      # - name: Apply deployment configuration file
+      #   run: |
+      #     kubectl apply -f deployment.yaml --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      # - name: Check rollout status
+      #   run: |
+      #     kubectl rollout status deployment.apps/air-delivery-scanner --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
