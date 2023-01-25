@@ -50,6 +50,9 @@ jobs:
       - name: Create namespace
         run: |
           kubectl create namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
+      - name: Set image
+        run: |
+          yq e -i '.spec.template.spec.containers[0].image = "${{ secrets.DOCKERHUB_USERNAME }}/airdelscn:${{ env.THE_GIT_HASH }}"' deployment.yaml
       - name: Apply deployment configuration file
         run: |
           kubectl apply -f deployment.yaml --namespace ${{ env.NAMESPACE }}-${{ env.THE_GIT_HASH }}
